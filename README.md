@@ -2,41 +2,42 @@
 
 This library helps you turn URLs into nicely structured data.
 
-It is designed to be used with `elm-lang/navigation` to help folks create single-page applications (SPAs) where you manage browser navigation yourself.
+This is a fork of the excellent [evancz/url-parser][] library, with the dependency on `elm-lang/navigation` removed. This avoids pulling in browser specific stuff like `dom`, 'html', 'navigation', and 'virtual-dom'. It is meant for use with non-browser based applications, such as [ktonon/elm-serverless][], but it can still be used with SPAs.
 
-> **Note:** This library is meant to serve as a baseline for future URL parsers. For example, it does not handle query parameters and hashes right now. It is more to (1) get folks started using URL parsers and (2) help us gather data on exactly which scenarios people face.
-
+The only difference is `parsePath` and `parseHash` (which depend on the `Location` type defined in the `Navigation` library) are replaced by a single `parse` function.
 
 ## Examples
 
 Here is a simplified REPL session showing a parser in action:
 
 ```elm
-> import UrlParser exposing ((</>), s, int, string, parseHash)
+> import Dict exposing (empty)
+> import UrlParser exposing ((</>), s, int, string, parse)
 
-> parseHash (s "blog" </> int) { ... , hash = "#blog/42" }
+> parse (s "blog" </> int) "#blog/42" empty
 Just 42
 
-> parseHash (s "blog" </> int) { ... , hash = "#/blog/13" }
+> parse (s "blog" </> int) "#/blog/13" empty
 Just 13
 
-> parseHash (s "blog" </> int) { ... , hash = "#/blog/hello" }
+> parse (s "blog" </> int) "#/blog/hello" empty
 Nothing
 
-> parseHash (s "search" </> string) { ... , hash = "#search/dogs" }
+> parse (s "search" </> string) "#search/dogs" empty
 Just "dogs"
 
-> parseHash (s "search" </> string) { ... , hash = "#/search/13" }
+> parse (s "search" </> string) "#/search/13" empty
 Just "13"
 
-> parseHash (s "search" </> string) { ... , hash = "#/search" }
+> parse (s "search" </> string) "#/search" empty
 Nothing
 ```
 
 Normally you have to put many of these parsers to handle all possible pages though! The following parser works on URLs like `/blog/42` and `/search/badger`:
 
 ```elm
-import UrlParser exposing (Parser, (</>), s, int, string, map, oneOf, parseHash)
+import Dict exposing (empty)
+import UrlParser exposing (Parser, (</>), s, int, string, map, oneOf, parse)
 
 type Route = Blog Int | Search String
 
@@ -47,17 +48,14 @@ route =
     , map Search (s "search" </> string)
     ]
 
--- parseHash route { ... , hash = "#/blog/58" }    == Just (Blog 58)
--- parseHash route { ... , hash = "#/search/cat" } == Just (Search "cat")
--- parseHash route { ... , hash = "#/search/31" }  == Just (Search "31")
--- parseHash route { ... , hash = "#/blog/cat" }   == Nothing
--- parseHash route { ... , hash = "#/blog" }       == Nothing
+-- parse route "#/blog/58" empty    == Just (Blog 58)
+-- parse route "#/search/cat" empty == Just (Search "cat")
+-- parse route "#/search/31" empty  == Just (Search "31")
+-- parse route "#/blog/cat" empty   == Nothing
+-- parse route "#/blog" empty       == Nothing
 ```
 
 Notice that we are turning URLs into nice [union types](https://guide.elm-lang.org/types/union_types.html), so we can use `case` expressions to work with them in a nice way.
-
-Check out the `examples/` directory of this repo to see this in use with `elm-lang/navigation`.
-
 
 ## Testing
 
@@ -68,7 +66,11 @@ npm test
 
 ## Background
 
-I first saw this general idea in Chris Done&rsquo;s [formatting][] library. Based on that, Noah and I outlined the API you see in this library. Noah then found Rudi Grinberg&rsquo;s [post][] about type safe routing in OCaml. It was exactly what we were going for. We had even used the names `s` and `(</>)` in our draft API! In the end, we ended up using the &ldquo;final encoding&rdquo; of the EDSL that had been left as an exercise for the reader. Very fun to work through!
+> I first saw this general idea in Chris Done&rsquo;s [formatting][] library. Based on that, Noah and I outlined the API you see in this library. Noah then found Rudi Grinberg&rsquo;s [post][] about type safe routing in OCaml. It was exactly what we were going for. We had even used the names `s` and `(</>)` in our draft API! In the end, we ended up using the &ldquo;final encoding&rdquo; of the EDSL that had been left as an exercise for the reader. Very fun to work through!
 
+-- [evancz](https://github.com/evancz)
+
+[evancz/url-parser]:https://github.com/evancz/url-parser
 [formatting]: http://chrisdone.com/posts/formatting
+[ktonon/elm-serverless]:https://github.com/ktonon/elm-serverless
 [post]: http://rgrinberg.com/posts/primitive-type-safe-routing/
