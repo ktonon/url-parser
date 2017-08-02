@@ -1,12 +1,13 @@
+module Main exposing (..)
+
 import Html exposing (Html, a, button, code, div, h1, li, text, ul)
-import Html.Attributes exposing (href)
 import Html.Events exposing (onClick)
 import Http
 import Navigation
 import UrlParser as Url exposing ((</>), (<?>), s, int, stringParam, top)
 
 
-
+main : Program Never Model Msg
 main =
   Navigation.program UrlChange
     { init = init

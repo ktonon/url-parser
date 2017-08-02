@@ -1,8 +1,10 @@
 {
   "scripts": {
+    "pretest": "elm-doc-test",
     "test": "elm-test"
   },
-  "dependencies": {
-    "elm-test": "^0.18.0"
+  "devDependencies": {
+    "elm-doc-test": "^4.0.0",
+    "elm-test": "^0.18.7"
   }
 }
