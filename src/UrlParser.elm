@@ -25,13 +25,15 @@ Examples below assume the following imports:
 @docs parseString
 
 # Navigation Compatibility
+
+These parsers are a convenience for working with
+[Navigation.Location](http://package.elm-lang.org/packages/elm-lang/navigation/2.1.0/Navigation#Location)
+
 @docs parsePath, parseHash
 -}
 
 import Dict exposing (Dict)
 import Http
-import Navigation
-
 
 
 -- PARSERS
@@ -440,10 +442,30 @@ parseString parser pathWithQuery =
       )
 
 
+-- Same as Navigation.Location.
+--
+-- Reproduced here to avoid a dependency on that library, which does not function
+-- outside of the browser.
+
+type alias Location =
+  { href : String
+  , host : String
+  , hostname : String
+  , protocol : String
+  , origin : String
+  , port_ : String
+  , pathname : String
+  , search : String
+  , hash : String
+  , username : String
+  , password : String
+  }
+
+
 {-| Parse based on `location.pathname` and `location.search`. This parser
 ignores the hash entirely.
 -}
-parsePath : Parser (a -> a) a -> Navigation.Location -> Maybe a
+parsePath : Parser (a -> a) a -> Location -> Maybe a
 parsePath parser location =
   parse parser location.pathname (parseParams location.search)
 
@@ -451,7 +473,7 @@ parsePath parser location =
 {-| Parse based on `location.hash` and `location.search`. This parser
 ignores the normal path entirely.
 -}
-parseHash : Parser (a -> a) a -> Navigation.Location -> Maybe a
+parseHash : Parser (a -> a) a -> Location -> Maybe a
 parseHash parser location =
   parse parser (String.dropLeft 1 location.hash) (parseParams location.search)
 
