@@ -1,9 +1,10 @@
 module Tests exposing (..)
 
-import Dict
 import UrlParser exposing (..)
+import Navigation exposing (Location)
 import Test exposing (..)
 import Expect
+
 
 
 -- TESTS
@@ -16,7 +17,6 @@ all =
         ]
 
 
-testParsing : List Test
 testParsing =
     [ parserTest "Home" "" HomeRoute
     , parserTest "About" "about" AboutRoute
@@ -27,24 +27,23 @@ testParsing =
     ]
 
 
-parserTest : String -> String -> MainRoute -> Test
 parserTest name path expectedRoute =
     describe name
         [ test (name ++ " in path") <|
             \() ->
                 Expect.equal
                     (Just expectedRoute)
-                    (parse routeParser ("/" ++ path) Dict.empty)
+                    (parsePath routeParser { newLocation | pathname = "/" ++ path })
         , test (name ++ " in hash") <|
             \() ->
                 Expect.equal
                     (Just expectedRoute)
-                    (parse routeParser ("#/" ++ path) Dict.empty)
+                    (parseHash routeParser { newLocation | hash = "#/" ++ path })
         , test (name ++ "in hash without leading slash") <|
             \() ->
                 Expect.equal
                     (Just expectedRoute)
-                    (parse routeParser ("#" ++ path) Dict.empty)
+                    (parseHash routeParser { newLocation | hash = "#" ++ path })
         ]
 
 
@@ -74,12 +73,10 @@ type MainRoute
 -- PARSERS
 
 
-routeParser : Parser (MainRoute -> c) c
 routeParser =
     oneOf mainMatchers
 
 
-usersMatchers : List (Parser (UserRoute -> c) c)
 usersMatchers =
     [ map UserEditRoute (int </> s "edit")
     , map UserRoute (int)
@@ -87,10 +84,29 @@ usersMatchers =
     ]
 
 
-mainMatchers : List (Parser (MainRoute -> c) c)
 mainMatchers =
     [ map HomeRoute top
     , map AboutRoute (s "about")
     , map TokenRoute (s "token" </> string)
     , map UsersRoutes (s "users" </> (oneOf usersMatchers))
     ]
+
+
+
+-- DUMMY LOCATION
+
+
+newLocation : Location
+newLocation =
+    { hash = ""
+    , host = "example.com"
+    , hostname = "example.com"
+    , href = ""
+    , origin = ""
+    , password = ""
+    , pathname = ""
+    , port_ = ""
+    , protocol = "http"
+    , search = ""
+    , username = ""
+    }
